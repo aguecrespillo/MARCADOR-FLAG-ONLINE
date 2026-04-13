@@ -1,62 +1,83 @@
 import React from 'react';
 import { useGameStore } from '../store/useGameStore';
-import { History, Clock, User } from 'lucide-react';
+import { History } from 'lucide-react';
 
 export const PlayHistory: React.FC = () => {
-  const { history } = useGameStore() as any;
+  const store = useGameStore() as any;
+  const history = store.history ?? [];
 
-  if (history.length === 0) return null;
+  const formatClock = (value: any) => {
+    const seconds = Number(value);
+
+    if (!Number.isFinite(seconds)) return '-';
+
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
-    <div className="bg-slate-900/50 rounded-3xl border border-slate-800 overflow-hidden shadow-xl">
-      <div className="bg-slate-900 p-4 border-b border-slate-800 flex items-center gap-2">
-        <History size={16} className="text-blue-500" />
-        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Historial de Jugadas</h3>
+    <div className="bg-slate-900/80 rounded-[2rem] border border-slate-800 overflow-hidden shadow-xl">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-800">
+        <History size={18} className="text-blue-500" />
+        <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-300">
+          Historial de jugadas
+        </h3>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-950/50">
-              <th className="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Reloj</th>
-              <th className="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Jugador</th>
-              <th className="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Pts</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/50">
-            {history.map((play: any) => (
-              <tr key={play.id} className="hover:bg-slate-800/30 transition-colors">
-                <td className="px-4 py-3">
-                  <div className="flex flex-col">
-                    <span className="text-white font-mono text-xs font-bold">{play.time}</span>
-                    <span className="text-[8px] text-slate-500 font-black uppercase">Periodo {play.period}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${play.team === 'home' ? 'bg-blue-500' : 'bg-red-500'}`}></div>
-                    <span className={`text-xs font-bold uppercase ${play.team === 'home' ? 'text-blue-100' : 'text-red-100'}`}>
-                      {play.playerName}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className={`inline-block px-2 py-1 rounded-lg text-[10px] font-black ${
-                    play.team === 'home' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'
-                  }`}>
-                    +{play.pts}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-[110px_1fr_90px] px-6 py-4 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 border-b border-slate-800">
+        <div>Reloj</div>
+        <div>Jugador</div>
+        <div className="text-right">Pts</div>
       </div>
-      
-      <div className="p-3 bg-slate-950/30 text-center">
-        <p className="text-[8px] font-medium text-slate-600 uppercase tracking-tighter">
-          Desliza para ver jugadas anteriores
-        </p>
+
+      {history.length === 0 ? (
+        <div className="px-6 py-10 text-center text-slate-500 text-sm font-bold">
+          Sin jugadas registradas
+        </div>
+      ) : (
+        <div>
+          {history.slice(0, 10).map((play: any, index: number) => {
+            const pts = play.pts ?? play.points ?? 0;
+            const playerName = play.playerName || 'Jugador';
+            const type = play.type || 'Anotación';
+            const formattedTime = formatClock(play.time);
+
+            return (
+              <div
+                key={play.id ?? index}
+                className="grid grid-cols-[110px_1fr_90px] items-center gap-4 px-6 py-5 border-b border-slate-800/70 last:border-b-0"
+              >
+                <div>
+                  <div className="text-white text-2xl font-black tabular-nums">
+                    {formattedTime}
+                  </div>
+                  <div className="text-[10px] font-black uppercase text-slate-500 mt-1">
+                    Tipo: {type}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></div>
+                  <div className="text-white text-2xl font-black uppercase truncate">
+                    {playerName}
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <div className="min-w-[56px] text-center bg-blue-900/50 text-blue-300 px-4 py-2 rounded-2xl text-2xl font-black">
+                    +{pts}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="px-6 py-4 text-center text-[10px] uppercase text-slate-600 border-t border-slate-800">
+        Últimas acciones registradas
       </div>
     </div>
   );
